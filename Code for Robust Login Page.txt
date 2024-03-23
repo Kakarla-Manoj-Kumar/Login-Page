@@ -1,0 +1,181 @@
+Login.Java(Servlet) page 
+----------------------------------
+
+package com.Kakarla;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+
+import java.io.IOException;
+
+import com.Kakarla.dao.LoginDao;
+
+@WebServlet("/login")
+public class Login extends HttpServlet {
+	
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		
+	   String UserName= request.getParameter("UserName");
+	   String Password = request.getParameter("Password");
+	   
+	   LoginDao dao =new LoginDao();
+	   
+	   if(dao.check(UserName, Password)) {
+		   HttpSession session = request.getSession();
+		   session.setAttribute("User",UserName );
+		   response.sendRedirect("Welcome.jsp");
+	   }
+	   else {
+		   response.sendRedirect("Login.jsp");
+	   }
+	   
+		
+	}
+
+
+}
+
+Logout.java(Servlet) Page
+----------------------------------
+
+
+package com.Kakarla;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+
+import java.io.IOException;
+@WebServlet("/logout")
+public class Logout extends HttpServlet {
+	
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		
+		HttpSession session = request.getSession();
+		session.getAttribute("User");
+		session.invalidate();
+		response.sendRedirect("Login.jsp");
+		
+	}
+
+}
+LoginDao.java(servlet) Jdbc Connecting page
+------------------------------------------------------------
+
+package com.Kakarla.dao;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+public class LoginDao 
+{
+	
+	public boolean check(String UserName, String Password) 
+	{
+		try {
+		Class.forName("com.mysql.cj.jdbc.Driver");
+		Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/manoj","root"," ");
+		String query ="select * from Login where UserName=? and Password=?";
+		PreparedStatement st =con.prepareStatement(query);
+		st.setString(1,UserName);
+		st.setString(2,Password);
+		ResultSet rs = st.executeQuery();
+		if(rs.next()) {
+			return true;
+		}
+		
+		}catch(Exception e) {
+			e.printStackTrace(); 
+		}
+		return false;
+	}
+
+}
+
+Login.Jsp
+--------------
+
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+<h1>LOGIN</h1><br>
+<form action="login" method="post">
+Enter UserName : <input type="text" name="UserName" ><br>
+Enter Password : <input type="password" name="Password" ><br>
+<input type="submit" value= "Login" >
+
+</form>
+</body>
+</html>
+
+Welcom.Jsp
+-------------------
+
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+
+<h1>Welcome</h1> 
+<%
+response.setHeader("Cache-Control", "no-cache,no-store, must-revalidate");//Http 1.1
+response.setHeader("Pragma","no-cache"); //Http 1.0
+response.setHeader("Expires","0");// Proxy
+if(session.getAttribute("User")==null){
+	response.sendRedirect("Login.jsp");
+}
+%>
+<a href="Vedios.jsp">Vedios Here</a><br>
+<a href="aboutus.jsp">About Us</a><br>
+
+<form action="logout">
+<input type="submit" value="Logout" >
+</form>
+
+</body>
+</html>
+Vedios.jsp
+-------------------
+
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+<h1>Vedios</h1>
+<%
+
+if(session.getAttribute("User")==null){
+	response.setHeader("Cache-Control", "no-cache,no-store,must-revalidate");
+	response.setHeader("Pragma","no-chache");
+	response.setHeader("Expires","0");
+	response.sendRedirect("Login.jsp");
+}
+%>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/4XTsAAHW_Tc?si=oBdHomyL0n3JwiBT" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+</body>
+</html>
